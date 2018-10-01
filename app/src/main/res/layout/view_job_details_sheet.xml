@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.subinkrishna.androidjobs.ui.listing.JobDetailsView
+            android:id="@+id/jobDetailsView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottomSheetCloseButton"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_margin="8dp"
+        android:animateLayoutChanges="true"
+        android:background="@drawable/bg_job_details_sheet_close"
+        android:orientation="horizontal"
+        tools:elevation="2dp">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/job_details_close"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_close_black_24dp"
+            android:tint="@color/text" />
+
+        <TextView
+            android:id="@+id/bottomSheetCloseCaption"
+            style="@style/AppTextAppearance.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:fontFamily="@font/product_sans"
+            android:gravity="center"
+            android:paddingStart="0dp"
+            android:paddingEnd="16dp"
+            android:text="@string/job_details_close"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+
+</FrameLayout>

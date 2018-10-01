@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Android Jobs</string>
+    <string name="main_progress_message_1">Invalidating caches</string>
+    <string name="main_progress_message_2">../gradlew clean build</string>
+    <string name="apply_now">Apply now</string>
+    <string name="job_details_close">Close</string>
+</resources>

@@ -1,0 +1,28 @@
+ext.versions = [
+        versionCode     : 1,
+        versionName     : '0.1',
+        minSdk          : 21,
+        targetSdk       : 28,
+        buildTools      : '3.2.0',
+
+        kotlin          : '1.2.71',
+        androidx        : '1.0.0',
+        androidxArch    : '2.0.0',
+        ktxCore         : '1.0.0',
+        ktxLifecycle    : '2.0.0',
+        constraintLayout: '2.0.0-alpha2',
+
+        rxJava          : '2.2.0',
+        rxAndroid       : '2.1.0',
+        okhttp          : '3.10.0',
+        gson            : '2.8.5',
+        jsoup           : '1.11.3',
+        retrofit        : '2.4.0',
+        leakcanary      : '1.6.1',
+        timber          : '4.7.1',
+        picasso         : '2.71828',
+
+        junit           : '4.12',
+        testRunner      : '1.1.0-alpha4',
+        espresso        : '3.1.0-alpha4'
+]
