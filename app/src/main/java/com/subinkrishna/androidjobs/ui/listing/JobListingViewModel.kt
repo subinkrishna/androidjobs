@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.subinkrishna.androidjobs.service.AndroidJobsApi
+import com.subinkrishna.androidjobs.service.RetrofitAndroidJobsApi
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -15,7 +16,7 @@ class JobListingViewModel(app: Application) : AndroidViewModel(app) {
     private var viewState = JobListingViewState(isLoading = true)
     private val viewStateLive = MutableLiveData<JobListingViewState>()
     private val disposable = CompositeDisposable()
-    private val api: AndroidJobsApi = TestJobsApi(app)
+    private val api: AndroidJobsApi = RetrofitAndroidJobsApi()
 
     init {
         viewStateLive.value = viewState

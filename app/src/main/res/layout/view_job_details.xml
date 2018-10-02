@@ -49,7 +49,7 @@
         android:layout_gravity="center"
         android:backgroundTint="@color/colorAccent"
         android:fontFamily="@font/product_sans"
-        android:text="@string/apply_now"
+        android:text="@string/job_details_apply_now"
         android:textAllCaps="false"
         android:textColor="@color/white"
         android:textStyle="bold" />

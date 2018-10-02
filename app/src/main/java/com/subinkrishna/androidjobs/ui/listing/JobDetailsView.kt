@@ -46,11 +46,13 @@ class JobDetailsView @JvmOverloads constructor(
 
     fun bind(item: JobListing) {
         jobListingItem = item
-        logo.setImageUrl(item.logoUrl) // todo: set error drawable
-        logo.contentDescription = item.company
+        logo.apply {
+            setImageUrl(item.logoUrl, errorDrawableRes = R.drawable.ic_company_logo_placeholder)
+            contentDescription = item.company
+        }
         companyNameText.text = item.company
-        jobTitleText.text = "${item.title} at ${item.company}"
-        jobTypeText.text = item.type
+        jobTitleText.text = context.getString(R.string.job_details_title, item.title, item.company)
+        jobTypeText.text = context.getString(R.string.job_details_type_category, item.type, item.tags)
         locationText.text = item.location
         descriptionText.text = Html.fromHtml(item.description)
     }

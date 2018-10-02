@@ -1,11 +1,41 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches/build_file_checksums.ser
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
+# Built application files
+*.apk
+*.ap_
+
+# Files for the dex VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+target/
+
+# Local configuration file
+local.properties
+
+# Mac
 .DS_Store
-/build
-/captures
-.externalNativeBuild
+
+# Eclipse
+.project
+.classpath
+.settings
+.checkstyle
+
+# IntelliJ / Android Studio
+*.iml
+*.iws
+out/
+.idea
+
+#/.idea/workspace.xml
+#/.idea/misc.xml
+#/.idea/modules.xml
+#/.idea/libraries/
+
+# Gradle
+.gradle/
+build/

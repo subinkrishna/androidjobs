@@ -2,6 +2,9 @@
     <string name="app_name">Android Jobs</string>
     <string name="main_progress_message_1">Invalidating caches</string>
     <string name="main_progress_message_2">../gradlew clean build</string>
-    <string name="apply_now">Apply now</string>
+
+    <string name="job_details_apply_now">Apply now</string>
     <string name="job_details_close">Close</string>
+    <string name="job_details_title">%1$s at %2$s</string>
+    <string name="job_details_type_category">%1$s \u2022 %2$s</string>
 </resources>

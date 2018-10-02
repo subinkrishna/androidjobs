@@ -45,8 +45,10 @@ class JobItemViewHolder(v: View) : RecyclerView.ViewHolder(v) {
     val locationText: TextView = itemView.findViewById(R.id.locationText)
 
     fun bind(item: JobListing) {
-        logo.setImageUrl(item.logoUrl) // todo: set error drawable
-        logo.contentDescription = item.company
+        logo.apply {
+            setImageUrl(item.logoUrl, errorDrawableRes = R.drawable.ic_company_logo_placeholder)
+            contentDescription = item.company
+        }
         companyNameText.text = item.company
         jobTitleText.text = item.title
         locationText.text = item.location
