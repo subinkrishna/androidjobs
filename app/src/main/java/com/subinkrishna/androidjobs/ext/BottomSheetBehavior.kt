@@ -21,8 +21,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 
 inline var BottomSheetBehavior<out View>.isExpanded: Boolean
     get() = state == BottomSheetBehavior.STATE_EXPANDED
-    set(value) {
-        state =  if (value) BottomSheetBehavior.STATE_EXPANDED else BottomSheetBehavior.STATE_HIDDEN
+    set(expand) {
+        state =  if (expand) BottomSheetBehavior.STATE_EXPANDED else BottomSheetBehavior.STATE_HIDDEN
     }
 
 inline fun BottomSheetBehavior<out View>.isExpandedOrPeeked(): Boolean {

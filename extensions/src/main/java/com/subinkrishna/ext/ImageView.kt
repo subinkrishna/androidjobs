@@ -18,8 +18,6 @@ package com.subinkrishna.ext
 import android.net.Uri
 import android.widget.ImageView
 import androidx.annotation.DrawableRes
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.DrawableCompat
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 
