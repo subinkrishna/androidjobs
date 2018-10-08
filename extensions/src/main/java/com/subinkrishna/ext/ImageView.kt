@@ -13,14 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("NOTHING_TO_INLINE")
+
 package com.subinkrishna.ext
 
-import android.net.Uri
+import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import androidx.annotation.DrawableRes
-import com.squareup.picasso.Callback
-import com.squareup.picasso.Picasso
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.Target
 
+/**
+ * Loads an image from the given URL to an [ImageView] using [Glide]
+ *
+ * @param url
+ * @param crossfade
+ * @param centerCrop
+ * @param placeHolderRes
+ * @param errorDrawableRes
+ * @param onSuccess
+ */
 fun ImageView.setImageUrl(
         url: String?,
         crossfade: Boolean = true,
@@ -40,19 +57,48 @@ fun ImageView.setImageUrl(
 
     val callback = when {
         (null != onSuccess) -> {
-            object : Callback {
-                override fun onSuccess() = onSuccess.invoke()
-                override fun onError(e: Exception?) = Unit
+            object : RequestListener<Drawable> {
+                override fun onLoadFailed(
+                        e: GlideException?,
+                        model: Any?,
+                        target: Target<Drawable>?,
+                        isFirstResource: Boolean
+                ): Boolean {
+                    return false
+                }
+
+                override fun onResourceReady(
+                        resource: Drawable?,
+                        model: Any?,
+                        target: Target<Drawable>?,
+                        dataSource: DataSource?,
+                        isFirstResource: Boolean
+                ): Boolean {
+                    onSuccess.invoke()
+                    return false
+                }
             }
         }
         else -> null
     }
 
-    Picasso.get().load(Uri.parse(url)).apply {
-        if (!crossfade) noFade()
+    val requestOptions = RequestOptions().apply {
+        diskCacheStrategy(DiskCacheStrategy.ALL)
         if (placeHolderRes != -1) placeholder(placeHolderRes)
         if (errorDrawableRes != -1) error(errorDrawableRes)
-        if (centerCrop) centerCrop() else centerInside()
-        fit()
-    }.into(this, callback)
+        if (centerCrop) centerCrop() else fitCenter()
+        if (!crossfade) dontAnimate()
+    }
+
+    Glide.with(context.applicationContext)
+            .load(url)
+            .apply(requestOptions)
+            .listener(callback)
+            .into(this)
+}
+
+inline fun ImageView.setGifResource(resId: Int) {
+    Glide.with(context.applicationContext)
+            .load(resId)
+            .into(this)
 }

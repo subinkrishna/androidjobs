@@ -16,10 +16,13 @@
 package com.subinkrishna.androidjobs.ui.listing
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
@@ -35,6 +38,7 @@ import com.subinkrishna.androidjobs.ext.isExpandedOrPeeked
 import com.subinkrishna.androidjobs.service.model.JobListing
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.FetchJobsEvent
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.ItemSelectEvent
+import com.subinkrishna.ext.setGifResource
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 
@@ -59,6 +63,8 @@ class JobListingActivity : BaseActivity() {
     private lateinit var shutter: View
     private lateinit var jobDetailsSheet: JobDetailsSheet
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<JobDetailsSheet>
+    private lateinit var errorImage: ImageView
+    private lateinit var errorText: TextView
 
     private val itemSelectEvent = PublishSubject.create<ItemSelectEvent>()
 
@@ -115,6 +121,10 @@ class JobListingActivity : BaseActivity() {
     private fun initializeUi(savedInstanceState: Bundle? = null) {
         toolbarContainer = findViewById(R.id.toolbarContainer)
         progressContainer = findViewById(R.id.progressIndicatorContainer)
+        shutter = findViewById(R.id.shutter)
+        errorImage = findViewById(R.id.androidGifImage)
+        errorText = findViewById(R.id.errorMessageText)
+
         jobList = findViewById<RecyclerView>(R.id.jobList).apply {
             this.adapter = jobListAdapter
             setHasFixedSize(true)
@@ -123,7 +133,6 @@ class JobListingActivity : BaseActivity() {
                     DividerItemDecoration.VERTICAL))
         }
 
-        shutter = findViewById(R.id.shutter)
         jobDetailsSheet = findViewById<JobDetailsSheet>(R.id.bottomSheetContainer).apply {
             onClose { onBackPressed() }
             onApply { url ->
@@ -160,6 +169,8 @@ class JobListingActivity : BaseActivity() {
 
         progressContainer.isVisible = isLoading && !hasContent
         jobList.isVisible = hasContent
+        errorImage.isVisible = hasError && !hasContent
+        errorText.isVisible = hasError && !hasContent
 
         if (hasContent) {
             jobListAdapter.submitList(state.content)
@@ -167,10 +178,12 @@ class JobListingActivity : BaseActivity() {
                 jobDetailsSheet.bind(state.itemInFocus!!)
                 bottomSheetBehavior.isExpanded = true
             }
-        }
-
-        if (hasError) {
-            // todo: handle error cases
+        } else if (hasError) {
+            errorImage.setGifResource(R.raw.gif_androidify_basketball)
+            val errorMessage = if (isOnline())
+                R.string.error_job_listing_unknown
+            else R.string.error_job_listing_offline
+            errorText.setText(errorMessage)
         }
     }
 
@@ -210,6 +223,11 @@ class JobListingActivity : BaseActivity() {
                 jobList.isVisible = true
             }
         }
+    }
+
+    private fun isOnline(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return cm.activeNetworkInfo?.isConnectedOrConnecting == true
     }
 
     companion object {

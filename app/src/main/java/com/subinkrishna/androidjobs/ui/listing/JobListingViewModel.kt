@@ -25,6 +25,7 @@ import androidx.lifecycle.LiveDataReactiveStreams
 import androidx.lifecycle.MutableLiveData
 import com.subinkrishna.androidjobs.model.Lce
 import com.subinkrishna.androidjobs.service.AndroidJobsApi
+import com.subinkrishna.androidjobs.service.RetrofitAndroidJobsApi
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.FetchJobsEvent
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.ItemSelectEvent
 import com.subinkrishna.androidjobs.ui.listing.JobListingResult.FetchJobsResult
@@ -48,7 +49,7 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
     private var viewState = JobListingViewState(isLoading = true)
     private val viewStateLive by lazy { MutableLiveData<JobListingViewState>() }
     private val disposable by lazy { CompositeDisposable() }
-    private val api: AndroidJobsApi by lazy { TestJobsApi(app) }
+    private val api: AndroidJobsApi by lazy { RetrofitAndroidJobsApi() }
 
     override fun onCleared() {
         super.onCleared()
