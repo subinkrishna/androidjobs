@@ -29,7 +29,7 @@ dependencies {
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
 
     implementation "androidx.appcompat:appcompat:$versions.androidx"
-    api "com.squareup.picasso:picasso:$versions.picasso"
+    api "com.github.bumptech.glide:glide:$versions.glide"
 
     testImplementation "junit:junit:$versions.junit"
     androidTestImplementation "androidx.test:runner:$versions.testRunner"

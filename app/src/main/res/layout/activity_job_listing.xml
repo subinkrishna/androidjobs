@@ -40,6 +40,11 @@
 
     <include layout="@layout/view_job_listing_progress_indicator" />
 
+    <include xmlns:tools="http://schemas.android.com/tools"
+        layout="@layout/view_job_listing_error"
+        tools:visibility="gone" />
+
     <include layout="@layout/view_toolbar" />
+
 
 </FrameLayout>

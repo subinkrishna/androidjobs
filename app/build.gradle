@@ -44,6 +44,7 @@ dependencies {
     implementation "androidx.core:core-ktx:$versions.ktxCore"
     implementation "androidx.lifecycle:lifecycle-common-java8:$versions.androidxArch"
     implementation "androidx.lifecycle:lifecycle-extensions:$versions.androidxArch"
+    implementation "androidx.lifecycle:lifecycle-reactivestreams:$versions.androidxArch"
     implementation "com.google.android.material:material:$versions.androidx"
 
     // Rx

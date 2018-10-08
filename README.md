@@ -1,5 +1,4 @@
 # Unofficial Android client for AndroidJobs.io
-===
 
 WIP
 

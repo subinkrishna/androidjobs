@@ -16,10 +16,13 @@
 package com.subinkrishna.androidjobs.ui.listing
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
@@ -33,6 +36,11 @@ import com.subinkrishna.androidjobs.R
 import com.subinkrishna.androidjobs.ext.isExpanded
 import com.subinkrishna.androidjobs.ext.isExpandedOrPeeked
 import com.subinkrishna.androidjobs.service.model.JobListing
+import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.FetchJobsEvent
+import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.ItemSelectEvent
+import com.subinkrishna.ext.setGifResource
+import io.reactivex.Observable
+import io.reactivex.subjects.PublishSubject
 
 
 /**
@@ -55,17 +63,19 @@ class JobListingActivity : BaseActivity() {
     private lateinit var shutter: View
     private lateinit var jobDetailsSheet: JobDetailsSheet
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<JobDetailsSheet>
+    private lateinit var errorImage: ImageView
+    private lateinit var errorText: TextView
+
+    private val itemSelectEvent = PublishSubject.create<ItemSelectEvent>()
 
     private val jobListAdapter by lazy {
-        JobListingAdapter(jobListingItemClickListener).apply {
+        val itemClickListener = View.OnClickListener { v ->
+            val jobListing = v.tag as? JobListing ?: return@OnClickListener
+            itemSelectEvent.onNext(ItemSelectEvent(jobListing))
+        }
+        JobListingAdapter(itemClickListener).apply {
             setHasStableIds(true)
         }
-    }
-
-    private val jobListingItemClickListener = View.OnClickListener { v ->
-        val jobListing = v.tag as? JobListing ?: return@OnClickListener
-        jobDetailsSheet.bind(jobListing)
-        bottomSheetBehavior.isExpanded = true
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,37 +83,14 @@ class JobListingActivity : BaseActivity() {
         setContentView(R.layout.activity_job_listing)
 
         configureToolbar()
+        initializeUi(savedInstanceState)
 
-        toolbarContainer = findViewById(R.id.toolbarContainer)
-        progressContainer = findViewById(R.id.progressIndicatorContainer)
-        jobList = findViewById<RecyclerView>(R.id.jobList).apply {
-            this.adapter = jobListAdapter
-            setHasFixedSize(true)
-            addItemDecoration(DividerItemDecoration(
-                    this@JobListingActivity,
-                    DividerItemDecoration.VERTICAL))
+        val fetchJobsEvent = when (null == savedInstanceState) {
+            true -> Observable.just(FetchJobsEvent)
+            false -> Observable.empty()
         }
 
-        shutter = findViewById(R.id.shutter)
-        jobDetailsSheet = findViewById<JobDetailsSheet>(R.id.bottomSheetContainer).apply {
-            onClose { onBackPressed() }
-            onApply { url ->
-                url?.let {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    if (intent.resolveActivity(packageManager) != null) {
-                        startActivity(intent)
-                    }
-                }
-            }
-        }
-        bottomSheetBehavior = BottomSheetBehavior.from(jobDetailsSheet).apply {
-            setBottomSheetCallback(bottomSheetCallback)
-            peekHeight = BottomSheetBehavior.PEEK_HEIGHT_AUTO
-            skipCollapsed = true
-            isExpanded = false
-        }
-
-        viewModel.viewState().observe(this, Observer {
+        viewModel.start(fetchJobsEvent, itemSelectEvent).observe(this, Observer {
             render(it)
         })
     }
@@ -117,6 +104,13 @@ class JobListingActivity : BaseActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState?.putBoolean(KEY_IS_SHEET_EXPANDED, bottomSheetBehavior.isExpandedOrPeeked())
+    }
+
+    // Internal methods
+
     private fun configureToolbar() {
         setSupportActionBar(findViewById(R.id.toolbar))
         findViewById<TextView>(R.id.toolbarTitleText).setText(R.string.app_name)
@@ -124,16 +118,72 @@ class JobListingActivity : BaseActivity() {
         supportActionBar?.title = ""
     }
 
+    private fun initializeUi(savedInstanceState: Bundle? = null) {
+        toolbarContainer = findViewById(R.id.toolbarContainer)
+        progressContainer = findViewById(R.id.progressIndicatorContainer)
+        shutter = findViewById(R.id.shutter)
+        errorImage = findViewById(R.id.androidGifImage)
+        errorText = findViewById(R.id.errorMessageText)
+
+        jobList = findViewById<RecyclerView>(R.id.jobList).apply {
+            this.adapter = jobListAdapter
+            setHasFixedSize(true)
+            addItemDecoration(DividerItemDecoration(
+                    this@JobListingActivity,
+                    DividerItemDecoration.VERTICAL))
+        }
+
+        jobDetailsSheet = findViewById<JobDetailsSheet>(R.id.bottomSheetContainer).apply {
+            onClose { onBackPressed() }
+            onApply { url ->
+                url?.let {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    if (intent.resolveActivity(packageManager) != null) {
+                        startActivity(intent)
+                    }
+                }
+            }
+        }
+
+        bottomSheetBehavior = BottomSheetBehavior.from(jobDetailsSheet).apply {
+            setBottomSheetCallback(bottomSheetCallback)
+            peekHeight = BottomSheetBehavior.PEEK_HEIGHT_AUTO
+            skipCollapsed = true
+            isExpanded = false
+        }
+
+        val isSheetExpanded = savedInstanceState?.getBoolean(KEY_IS_SHEET_EXPANDED) ?: false
+        if (isSheetExpanded) {
+            // Hide the toolbar if the sheet is expanded
+            toolbarContainer.post {
+                toolbarContainer.translationY = -toolbarContainer.height.toFloat()
+            }
+        }
+    }
+
     private fun render(state: JobListingViewState) {
         val isLoading = state.isLoading
         val hasContent = state.content?.isNotEmpty() == true
-        val hasError = state.error != null // todo: handle error cases
+        val hasError = state.error != null
+        val hasItemInFocus = null != state.itemInFocus
 
         progressContainer.isVisible = isLoading && !hasContent
         jobList.isVisible = hasContent
+        errorImage.isVisible = hasError && !hasContent
+        errorText.isVisible = hasError && !hasContent
 
         if (hasContent) {
             jobListAdapter.submitList(state.content)
+            if (hasItemInFocus) {
+                jobDetailsSheet.bind(state.itemInFocus!!)
+                bottomSheetBehavior.isExpanded = true
+            }
+        } else if (hasError) {
+            errorImage.setGifResource(R.raw.gif_androidify_basketball)
+            val errorMessage = if (isOnline())
+                R.string.error_job_listing_unknown
+            else R.string.error_job_listing_offline
+            errorText.setText(errorMessage)
         }
     }
 
@@ -167,9 +217,20 @@ class JobListingActivity : BaseActivity() {
                 if (newState == BottomSheetBehavior.STATE_HIDDEN) {
                     shutter.isVisible = false
                     jobDetailsSheet.showCloseButton(false)
+                    // Set "no item" selected
+                    itemSelectEvent.onNext(ItemSelectEvent(null))
                 }
                 jobList.isVisible = true
             }
         }
+    }
+
+    private fun isOnline(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return cm.activeNetworkInfo?.isConnectedOrConnecting == true
+    }
+
+    companion object {
+        private const val KEY_IS_SHEET_EXPANDED = "JobListingActivity.IsSheetExpanded"
     }
 }

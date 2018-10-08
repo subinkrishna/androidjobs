@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.subinkrishna.androidjobs
+package com.subinkrishna.androidjobs.model
 
-import android.app.Application
-import com.squareup.leakcanary.LeakCanary
-import timber.log.Timber
-
-class AndroidJobsApp : Application() {
-
-    override fun onCreate() {
-        super.onCreate()
-
-        // Leak canary
-        if (LeakCanary.isInAnalyzerProcess(this)) return
-        LeakCanary.install(this)
-
-        // Timber
-        Timber.plant(Timber.DebugTree())
-    }
+/**
+ * LCE
+ *
+ * Inspired by https://github.com/kaushikgopal/movies-usf
+ */
+sealed class Lce<T> {
+    class Loading<T> : Lce<T>()
+    data class Content<T>(val payload: T) : Lce<T>()
+    data class Error<T>(val payload: T) : Lce<T>()
 }

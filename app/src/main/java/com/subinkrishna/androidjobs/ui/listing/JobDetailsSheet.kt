@@ -48,7 +48,6 @@ class JobDetailsSheet @JvmOverloads constructor(
 
         bottomSheetCloseCaption = findViewById(R.id.bottomSheetCloseCaption)
         bottomSheetCloseButton = findViewById<LinearLayout>(R.id.bottomSheetCloseButton).apply {
-            layoutTransition.setDuration(200)
             setOnClickListener { onCloseAction?.invoke() }
         }
     }
@@ -97,7 +96,8 @@ class JobDetailsSheet @JvmOverloads constructor(
             oldScrollX: Int,
             oldScrollY: Int
     ) {
-        bottomSheetCloseButton.elevation = context.px(if (scrollY > 0) 3f else 0f)
-        bottomSheetCloseCaption.isVisible = scrollY > 0
+        val threshold = bottomSheetCloseButton.height * 2
+        bottomSheetCloseButton.elevation = context.px(if (scrollY > threshold) 3f else 0f)
+        bottomSheetCloseCaption.isVisible = scrollY > threshold
     }
 }

@@ -22,7 +22,6 @@
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:layout_margin="8dp"
-        android:animateLayoutChanges="true"
         android:background="@drawable/bg_job_details_sheet_close"
         android:orientation="horizontal"
         tools:elevation="2dp">

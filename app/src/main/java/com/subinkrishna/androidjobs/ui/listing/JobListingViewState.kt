@@ -18,10 +18,30 @@ package com.subinkrishna.androidjobs.ui.listing
 import com.subinkrishna.androidjobs.service.model.JobListing
 
 /**
- * View state
+ * View state, events & results.
  *
  * @author Subinkrishna Gopi
  */
-data class JobListingViewState(val isLoading: Boolean = false,
-                               val content: List<JobListing>? = null,
-                               val error: Any? = null)
+data class JobListingViewState(
+        val isLoading: Boolean = false,
+        val content: List<JobListing>? = null,
+        val error: Any? = null,
+        val itemInFocus: JobListing? = null
+) {
+    override fun toString(): String {
+        return "JobListingViewState(isLoading: $isLoading, content: ${content?.size ?: 0}, error: $error, itemInFocus: $itemInFocus)"
+    }
+}
+
+sealed class JobListingEvent {
+    object FetchJobsEvent : JobListingEvent()
+    data class ItemSelectEvent(val item: JobListing?) : JobListingEvent()
+}
+
+sealed class JobListingResult {
+    data class FetchJobsResult(
+            val items: List<JobListing>? = null,
+            val error: Throwable? = null
+    ) : JobListingResult()
+    data class ItemSelectResult(val item: JobListing?) : JobListingResult()
+}
