@@ -24,6 +24,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -31,7 +32,6 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.subinkrishna.androidjobs.BaseActivity
 import com.subinkrishna.androidjobs.R
 import com.subinkrishna.androidjobs.ext.isExpanded
 import com.subinkrishna.androidjobs.ext.isExpandedOrPeeked
@@ -49,7 +49,7 @@ import io.reactivex.subjects.PublishSubject
  * @author Subinkrishna Gopi
  * @see JobListingViewModel
  */
-class JobListingActivity : BaseActivity() {
+class JobListingActivity : AppCompatActivity() {
 
     private val viewModel by lazy {
         val factory = ViewModelProvider.AndroidViewModelFactory
@@ -180,7 +180,7 @@ class JobListingActivity : BaseActivity() {
             }
         } else if (hasError) {
             errorImage.setGifResource(R.raw.gif_androidify_basketball)
-            val errorMessage = if (isOnline())
+            val errorMessage = if (!isOnline())
                 R.string.error_job_listing_unknown
             else R.string.error_job_listing_offline
             errorText.setText(errorMessage)
