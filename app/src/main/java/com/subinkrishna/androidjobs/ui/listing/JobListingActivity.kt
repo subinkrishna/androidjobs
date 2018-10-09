@@ -180,7 +180,7 @@ class JobListingActivity : AppCompatActivity() {
             }
         } else if (hasError) {
             errorImage.setGifResource(R.raw.gif_androidify_basketball)
-            val errorMessage = if (!isOnline())
+            val errorMessage = if (isOnline())
                 R.string.error_job_listing_unknown
             else R.string.error_job_listing_offline
             errorText.setText(errorMessage)
