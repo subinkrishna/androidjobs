@@ -51,15 +51,26 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
     private val disposable by lazy { CompositeDisposable() }
     private val api: AndroidJobsApi by lazy { RetrofitAndroidJobsApi() }
 
+    // Job fetch is not a user triggered event, hence moving it to ViewModel
+    private var isJobFetchTriggered = false
+    private val fetchJobsEvent: Observable<FetchJobsEvent>
+        get() {
+            return if (!isJobFetchTriggered) {
+                isJobFetchTriggered = true
+                Observable.just(FetchJobsEvent)
+            } else {
+                Observable.empty()
+            }
+        }
+
     override fun onCleared() {
         super.onCleared()
         disposable.dispose()
     }
 
     fun start(
-            fetchJobsEvent: Observable<FetchJobsEvent>,
             itemClickEvent: Observable<ItemSelectEvent>
-    ): LiveData<JobListingViewState> {
+    ): LiveData<out JobListingViewState> {
         // Merge events and get results
         val results: Observable<Lce<out JobListingResult>> = Observable.merge(
                 fetchJobsEvent.compose(onFetchJobs()),
@@ -68,8 +79,9 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
         // Reduce to state & update LiveData
         disposable.add(reduceResultToViewState(results)
                 .distinctUntilChanged()
-                .i("State")
+                .log("State")
                 .doOnNext {
+                    // todo: switch b/w viewStateLive & eventLive here?
                     viewState = it
                     viewStateLive.postValue(it)
                 }
@@ -142,7 +154,7 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
      * Note: For testing purpose only!
      * TODO: Remove after testing
      */
-    private inline fun <reified T> Observable<T>.i(prefix: String? = null): Observable<T> {
+    private inline fun <reified T> Observable<T>.log(prefix: String? = null): Observable<T> {
         return doOnNext { Timber.i("$prefix: $it") }
     }
 

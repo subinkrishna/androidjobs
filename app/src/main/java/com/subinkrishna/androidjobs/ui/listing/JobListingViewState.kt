@@ -43,5 +43,6 @@ sealed class JobListingResult {
             val items: List<JobListing>? = null,
             val error: Throwable? = null
     ) : JobListingResult()
+
     data class ItemSelectResult(val item: JobListing?) : JobListingResult()
 }

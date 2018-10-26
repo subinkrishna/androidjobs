@@ -36,10 +36,8 @@ import com.subinkrishna.androidjobs.R
 import com.subinkrishna.androidjobs.ext.isExpanded
 import com.subinkrishna.androidjobs.ext.isExpandedOrPeeked
 import com.subinkrishna.androidjobs.service.model.JobListing
-import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.FetchJobsEvent
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.ItemSelectEvent
 import com.subinkrishna.ext.setGifResource
-import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 
 
@@ -85,12 +83,7 @@ class JobListingActivity : AppCompatActivity() {
         configureToolbar()
         initializeUi(savedInstanceState)
 
-        val fetchJobsEvent = when (null == savedInstanceState) {
-            true -> Observable.just(FetchJobsEvent)
-            false -> Observable.empty()
-        }
-
-        viewModel.start(fetchJobsEvent, itemSelectEvent).observe(this, Observer {
+        viewModel.start(itemSelectEvent).observe(this, Observer {
             render(it)
         })
     }
