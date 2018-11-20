@@ -38,14 +38,14 @@ dependencies {
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
 
     // Android X
-    implementation "androidx.appcompat:appcompat:$versions.androidx"
-    implementation "androidx.recyclerview:recyclerview:$versions.androidx"
+    implementation "androidx.appcompat:appcompat:$versions.appCompat"
+    implementation "androidx.recyclerview:recyclerview:$versions.recyclerView"
     implementation "androidx.constraintlayout:constraintlayout:$versions.constraintLayout"
     implementation "androidx.core:core-ktx:$versions.ktxCore"
-    implementation "androidx.lifecycle:lifecycle-common-java8:$versions.androidxArch"
-    implementation "androidx.lifecycle:lifecycle-extensions:$versions.androidxArch"
-    implementation "androidx.lifecycle:lifecycle-reactivestreams:$versions.androidxArch"
-    implementation "com.google.android.material:material:$versions.androidx"
+    implementation "androidx.lifecycle:lifecycle-common-java8:$versions.arch"
+    implementation "androidx.lifecycle:lifecycle-extensions:$versions.arch"
+    implementation "androidx.lifecycle:lifecycle-reactivestreams:$versions.arch"
+    implementation "com.google.android.material:material:$versions.material"
 
     // Rx
     implementation "io.reactivex.rxjava2:rxjava:$versions.rxJava"
