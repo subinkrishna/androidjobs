@@ -119,16 +119,18 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
 
     private fun onRemoteToggle(): ObservableTransformer<RemoteToggleEvent, Lce<FilteredListingResult>> {
         return ObservableTransformer { upstream ->
-            upstream.map { _ ->
-                filter = if (filter == Filter.All) Filter.Remote else Filter.All
-                val filteredItems = when (filter) {
-                    Filter.All -> itemsLive.value
-                    Filter.Remote -> {
-                        itemsLive.value?.filter { it.location.toLowerCase().contains("remote") }
+            upstream
+                    .takeWhile { itemsLive.value?.isNotEmpty() == true }
+                    .map { _ ->
+                        filter = if (filter == Filter.All) Filter.Remote else Filter.All
+                        val filteredItems = when (filter) {
+                            Filter.All -> itemsLive.value
+                            Filter.Remote -> {
+                                itemsLive.value?.filter { it.location.toLowerCase().contains("remote") }
+                            }
+                        }
+                        Lce.Content(FilteredListingResult(filteredItems))
                     }
-                }
-                Lce.Content(FilteredListingResult(filteredItems))
-            }
         }
     }
 
