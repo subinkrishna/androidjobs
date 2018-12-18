@@ -26,10 +26,9 @@ import androidx.lifecycle.MutableLiveData
 import com.subinkrishna.androidjobs.model.Lce
 import com.subinkrishna.androidjobs.service.AndroidJobsApi
 import com.subinkrishna.androidjobs.service.RetrofitAndroidJobsApi
-import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.FetchJobsEvent
-import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.ItemSelectEvent
-import com.subinkrishna.androidjobs.ui.listing.JobListingResult.FetchJobsResult
-import com.subinkrishna.androidjobs.ui.listing.JobListingResult.ItemSelectResult
+import com.subinkrishna.androidjobs.service.model.JobListing
+import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.*
+import com.subinkrishna.androidjobs.ui.listing.JobListingResult.*
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
@@ -46,8 +45,16 @@ import timber.log.Timber
  */
 class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
 
+    // Current view state
     private var viewState = JobListingViewState(isLoading = true)
     private val viewStateLive by lazy { MutableLiveData<JobListingViewState>() }
+
+    // Holds all the job listings
+    private var itemsLive = MutableLiveData<List<JobListing>>()
+
+    // Holds current listing filter
+    private var filter = Filter.All
+
     private val disposable by lazy { CompositeDisposable() }
     private val api: AndroidJobsApi by lazy { RetrofitAndroidJobsApi() }
 
@@ -55,6 +62,7 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
     private var isJobFetchTriggered = false
     private val fetchJobsEvent: Observable<FetchJobsEvent>
         get() {
+            // This event needs to be triggered only once
             return if (!isJobFetchTriggered) {
                 isJobFetchTriggered = true
                 Observable.just(FetchJobsEvent)
@@ -69,11 +77,13 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
     }
 
     fun start(
-            itemClickEvent: Observable<ItemSelectEvent>
+            itemClickEvent: Observable<ItemSelectEvent>,
+            remoteToggleEvent: Observable<RemoteToggleEvent>
     ): LiveData<out JobListingViewState> {
         // Merge events and get results
         val results: Observable<Lce<out JobListingResult>> = Observable.merge(
                 fetchJobsEvent.compose(onFetchJobs()),
+                remoteToggleEvent.compose(onRemoteToggle()),
                 itemClickEvent.compose(onJobItemClick()))
 
         // Reduce to state & update LiveData
@@ -81,10 +91,10 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
                 .distinctUntilChanged()
                 .log("State")
                 .doOnNext {
-                    // todo: switch b/w viewStateLive & eventLive here?
                     viewState = it
                     viewStateLive.postValue(it)
                 }
+                .subscribeOn(Schedulers.single())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe())
 
@@ -98,11 +108,26 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
         return ObservableTransformer { upstream ->
             upstream.switchMap { _ ->
                 api.getJobs().toObservable()
-                        .subscribeOn(Schedulers.io())
+                        .doOnNext { itemsLive.postValue(it) }
                         .map { FetchJobsResult(items = it) }
                         .onErrorReturn { FetchJobsResult(error = it) }
                         .map { if (it.error != null) Lce.Error(it) else Lce.Content(it) }
                         .startWith(Lce.Loading())
+            }
+        }
+    }
+
+    private fun onRemoteToggle(): ObservableTransformer<RemoteToggleEvent, Lce<FilteredListingResult>> {
+        return ObservableTransformer { upstream ->
+            upstream.map { _ ->
+                filter = if (filter == Filter.All) Filter.Remote else Filter.All
+                val filteredItems = when (filter) {
+                    Filter.All -> itemsLive.value
+                    Filter.Remote -> {
+                        itemsLive.value?.filter { it.location.toLowerCase().contains("remote") }
+                    }
+                }
+                Lce.Content(FilteredListingResult(filteredItems))
             }
         }
     }
@@ -119,6 +144,7 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
             results: Observable<Lce<out JobListingResult>>
     ): Observable<JobListingViewState> {
         return results.scan(viewState) { viewState, result ->
+            Timber.d("result: $result")
             when (result) {
                 is Lce.Loading -> {
                     viewState.copy(isLoading = true, error = null)
@@ -129,8 +155,15 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
                             viewState.copy(
                                     isLoading = false,
                                     error = null,
-                                    content = result.payload.items) }
-                        is ItemSelectResult -> { viewState.copy(itemInFocus = result.payload.item) }
+                                    content = result.payload.items)
+                        }
+                        is FilteredListingResult -> {
+                            viewState.copy(
+                                    content = result.payload.items)
+                        }
+                        is ItemSelectResult -> {
+                            viewState.copy(itemInFocus = result.payload.item)
+                        }
                     }
                 }
                 is Lce.Error -> {
