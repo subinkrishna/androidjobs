@@ -1,6 +1,12 @@
 # Unofficial Android client for AndroidJobs.io
 
-WIP
+## Download
+
+Download the latest version from [releases][1].
+
+## Screenshots
+
+<img src="https://raw.githubusercontent.com/subinkrishna/androidjobs/master/art/screenshot.png" width="300" alt="Screensots"/> 
 
 ## Licence
 
@@ -17,3 +23,5 @@ WIP
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License. 
+    
+[1]: ../../releases
