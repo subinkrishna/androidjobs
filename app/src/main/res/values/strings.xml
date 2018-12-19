@@ -3,11 +3,14 @@
     <string name="main_progress_message_1">Invalidating caches</string>
     <string name="main_progress_message_2">../gradlew clean build</string>
 
+    <string name="job_listing_remote">Remote</string>
+
     <string name="job_details_apply_now">Apply now</string>
     <string name="job_details_close">Close</string>
     <string name="job_details_title">%1$s at %2$s</string>
     <string name="job_details_type_category">%1$s \u2022 %2$s</string>
 
+    <string name="empty_no_listing">No listings found!</string>
     <string name="error_job_listing_offline">Your device seems offline 🤷‍</string>
     <string name="error_job_listing_unknown">Something went wrong! Please try later (or invalidate cache &amp; restart, may be)</string>
 </resources>

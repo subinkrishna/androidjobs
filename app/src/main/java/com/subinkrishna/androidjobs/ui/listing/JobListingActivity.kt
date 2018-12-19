@@ -29,7 +29,6 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.subinkrishna.androidjobs.R
@@ -37,6 +36,8 @@ import com.subinkrishna.androidjobs.ext.isExpanded
 import com.subinkrishna.androidjobs.ext.isExpandedOrPeeked
 import com.subinkrishna.androidjobs.service.model.JobListing
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.ItemSelectEvent
+import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.RemoteToggleEvent
+import com.subinkrishna.androidjobs.ui.widget.DividerDecoration
 import com.subinkrishna.ext.setGifResource
 import io.reactivex.subjects.PublishSubject
 
@@ -61,10 +62,12 @@ class JobListingActivity : AppCompatActivity() {
     private lateinit var shutter: View
     private lateinit var jobDetailsSheet: JobDetailsSheet
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<JobDetailsSheet>
-    private lateinit var errorImage: ImageView
-    private lateinit var errorText: TextView
+    private lateinit var statusImage: ImageView
+    private lateinit var statusText: TextView
+    private lateinit var remoteToggle: TextView
 
     private val itemSelectEvent = PublishSubject.create<ItemSelectEvent>()
+    private val remoteToggleEvent = PublishSubject.create<RemoteToggleEvent>()
 
     private val jobListAdapter by lazy {
         val itemClickListener = View.OnClickListener { v ->
@@ -79,11 +82,9 @@ class JobListingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_job_listing)
-
         configureToolbar()
-        initializeUi(savedInstanceState)
-
-        viewModel.start(itemSelectEvent).observe(this, Observer {
+        configureUi(savedInstanceState)
+        viewModel.start(itemSelectEvent, remoteToggleEvent).observe(this, Observer {
             render(it)
         })
     }
@@ -111,19 +112,21 @@ class JobListingActivity : AppCompatActivity() {
         supportActionBar?.title = ""
     }
 
-    private fun initializeUi(savedInstanceState: Bundle? = null) {
+    private fun configureUi(savedInstanceState: Bundle? = null) {
         toolbarContainer = findViewById(R.id.toolbarContainer)
         progressContainer = findViewById(R.id.progressIndicatorContainer)
         shutter = findViewById(R.id.shutter)
-        errorImage = findViewById(R.id.androidGifImage)
-        errorText = findViewById(R.id.errorMessageText)
+        statusImage = findViewById(R.id.androidGifImage)
+        statusText = findViewById(R.id.statusMessageText)
+        remoteToggle = findViewById<TextView>(R.id.remoteToggle).apply {
+            setOnClickListener { remoteToggleEvent.onNext(RemoteToggleEvent) }
+            isVisible = false // Show it only after fetching the listing
+        }
 
         jobList = findViewById<RecyclerView>(R.id.jobList).apply {
             this.adapter = jobListAdapter
             setHasFixedSize(true)
-            addItemDecoration(DividerItemDecoration(
-                    this@JobListingActivity,
-                    DividerItemDecoration.VERTICAL))
+            addItemDecoration(DividerDecoration())
         }
 
         jobDetailsSheet = findViewById<JobDetailsSheet>(R.id.bottomSheetContainer).apply {
@@ -162,8 +165,10 @@ class JobListingActivity : AppCompatActivity() {
 
         progressContainer.isVisible = isLoading && !hasContent
         jobList.isVisible = hasContent
-        errorImage.isVisible = hasError && !hasContent
-        errorText.isVisible = hasError && !hasContent
+        remoteToggle.isVisible = true
+        remoteToggle.isSelected = state.filter == Filter.Remote
+        statusImage.isVisible = !isLoading && !hasContent
+        statusText.isVisible = !isLoading && !hasContent
 
         if (hasContent) {
             jobListAdapter.submitList(state.content)
@@ -171,12 +176,16 @@ class JobListingActivity : AppCompatActivity() {
                 jobDetailsSheet.bind(state.itemInFocus!!)
                 bottomSheetBehavior.isExpanded = true
             }
-        } else if (hasError) {
-            errorImage.setGifResource(R.raw.gif_androidify_basketball)
+        } else if (!isLoading && !hasContent) {
+            statusImage.setGifResource(R.raw.gif_androidify_basketball)
+            statusText.setText(R.string.empty_no_listing)
+        }
+        else if (hasError) {
+            statusImage.setGifResource(R.raw.gif_androidify_basketball)
             val errorMessage = if (isOnline())
                 R.string.error_job_listing_unknown
             else R.string.error_job_listing_offline
-            errorText.setText(errorMessage)
+            statusText.setText(errorMessage)
         }
     }
 

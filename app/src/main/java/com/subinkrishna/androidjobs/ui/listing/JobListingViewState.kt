@@ -25,6 +25,7 @@ import com.subinkrishna.androidjobs.service.model.JobListing
 data class JobListingViewState(
         val isLoading: Boolean = false,
         val content: List<JobListing>? = null,
+        val filter: Filter,
         val error: Any? = null,
         val itemInFocus: JobListing? = null
 ) {
@@ -33,8 +34,11 @@ data class JobListingViewState(
     }
 }
 
+enum class Filter { All, Remote }
+
 sealed class JobListingEvent {
     object FetchJobsEvent : JobListingEvent()
+    object RemoteToggleEvent : JobListingEvent()
     data class ItemSelectEvent(val item: JobListing?) : JobListingEvent()
 }
 
@@ -42,6 +46,11 @@ sealed class JobListingResult {
     data class FetchJobsResult(
             val items: List<JobListing>? = null,
             val error: Throwable? = null
+    ) : JobListingResult()
+
+    data class FilteredListingResult(
+            val items: List<JobListing>? = null,
+            val filter: Filter
     ) : JobListingResult()
 
     data class ItemSelectResult(val item: JobListing?) : JobListingResult()
