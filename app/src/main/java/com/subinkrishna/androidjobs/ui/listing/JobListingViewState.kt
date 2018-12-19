@@ -25,7 +25,7 @@ import com.subinkrishna.androidjobs.service.model.JobListing
 data class JobListingViewState(
         val isLoading: Boolean = false,
         val content: List<JobListing>? = null,
-        val filter: Filter = Filter.All,
+        val filter: Filter,
         val error: Any? = null,
         val itemInFocus: JobListing? = null
 ) {
@@ -48,6 +48,10 @@ sealed class JobListingResult {
             val error: Throwable? = null
     ) : JobListingResult()
 
-    data class FilteredListingResult(val items: List<JobListing>? = null) : JobListingResult()
+    data class FilteredListingResult(
+            val items: List<JobListing>? = null,
+            val filter: Filter
+    ) : JobListingResult()
+
     data class ItemSelectResult(val item: JobListing?) : JobListingResult()
 }

@@ -29,7 +29,6 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.subinkrishna.androidjobs.R
@@ -38,6 +37,7 @@ import com.subinkrishna.androidjobs.ext.isExpandedOrPeeked
 import com.subinkrishna.androidjobs.service.model.JobListing
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.ItemSelectEvent
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.RemoteToggleEvent
+import com.subinkrishna.androidjobs.ui.widget.DividerDecoration
 import com.subinkrishna.ext.setGifResource
 import io.reactivex.subjects.PublishSubject
 
@@ -83,7 +83,7 @@ class JobListingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_job_listing)
         configureToolbar()
-        initializeUi(savedInstanceState)
+        configureUi(savedInstanceState)
         viewModel.start(itemSelectEvent, remoteToggleEvent).observe(this, Observer {
             render(it)
         })
@@ -112,7 +112,7 @@ class JobListingActivity : AppCompatActivity() {
         supportActionBar?.title = ""
     }
 
-    private fun initializeUi(savedInstanceState: Bundle? = null) {
+    private fun configureUi(savedInstanceState: Bundle? = null) {
         toolbarContainer = findViewById(R.id.toolbarContainer)
         progressContainer = findViewById(R.id.progressIndicatorContainer)
         shutter = findViewById(R.id.shutter)
@@ -126,9 +126,7 @@ class JobListingActivity : AppCompatActivity() {
         jobList = findViewById<RecyclerView>(R.id.jobList).apply {
             this.adapter = jobListAdapter
             setHasFixedSize(true)
-            addItemDecoration(DividerItemDecoration(
-                    this@JobListingActivity,
-                    DividerItemDecoration.VERTICAL))
+            addItemDecoration(DividerDecoration())
         }
 
         jobDetailsSheet = findViewById<JobDetailsSheet>(R.id.bottomSheetContainer).apply {
@@ -168,6 +166,7 @@ class JobListingActivity : AppCompatActivity() {
         progressContainer.isVisible = isLoading && !hasContent
         jobList.isVisible = hasContent
         remoteToggle.isVisible = true
+        remoteToggle.isSelected = state.filter == Filter.Remote
         statusImage.isVisible = !isLoading && !hasContent
         statusText.isVisible = !isLoading && !hasContent
 

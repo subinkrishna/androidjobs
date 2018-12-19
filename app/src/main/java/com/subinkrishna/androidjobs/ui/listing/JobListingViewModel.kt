@@ -46,7 +46,7 @@ import timber.log.Timber
 class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
 
     // Current view state
-    private var viewState = JobListingViewState(isLoading = true)
+    private var viewState = JobListingViewState(isLoading = true, filter = Filter.All)
     private val viewStateLive by lazy { MutableLiveData<JobListingViewState>() }
 
     // Holds all the job listings
@@ -129,7 +129,7 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
                                 itemsLive.value?.filter { it.location.toLowerCase().contains("remote") }
                             }
                         }
-                        Lce.Content(FilteredListingResult(filteredItems))
+                        Lce.Content(FilteredListingResult(items = filteredItems, filter = filter))
                     }
         }
     }
@@ -161,7 +161,8 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
                         }
                         is FilteredListingResult -> {
                             viewState.copy(
-                                    content = result.payload.items)
+                                    content = result.payload.items,
+                                    filter = result.payload.filter)
                         }
                         is ItemSelectResult -> {
                             viewState.copy(itemInFocus = result.payload.item)
