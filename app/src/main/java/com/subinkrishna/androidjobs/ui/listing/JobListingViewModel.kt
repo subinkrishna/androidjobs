@@ -25,7 +25,6 @@ import androidx.lifecycle.LiveDataReactiveStreams
 import androidx.lifecycle.MutableLiveData
 import com.subinkrishna.androidjobs.model.Lce
 import com.subinkrishna.androidjobs.service.AndroidJobsApi
-import com.subinkrishna.androidjobs.service.RetrofitAndroidJobsApi
 import com.subinkrishna.androidjobs.service.model.JobListing
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.*
 import com.subinkrishna.androidjobs.ui.listing.JobListingResult.*
@@ -40,10 +39,11 @@ import timber.log.Timber
 /**
  * USF (Uni-directional State Flow) based ViewModel implementation for job listing.
  * Inspired by https://github.com/kaushikgopal/movies-usf/blob/master/app/src/main/java/co/kaush/msusf/movies/MSMovieVm.kt
- *
- * @author Subinkrishna Gopi
  */
-class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
+class JobListingViewModel(
+        private val app: Application,
+        private val api: AndroidJobsApi
+) : AndroidViewModel(app) {
 
     // Current view state
     private var viewState = JobListingViewState(isLoading = true, filter = Filter.All)
@@ -56,7 +56,6 @@ class JobListingViewModel(val app: Application) : AndroidViewModel(app) {
     private var filter = Filter.All
 
     private val disposable by lazy { CompositeDisposable() }
-    private val api: AndroidJobsApi by lazy { RetrofitAndroidJobsApi() }
 
     // Job fetch is not a user triggered event, hence moving it to ViewModel
     private var isJobFetchTriggered = false

@@ -27,6 +27,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.RecyclerView
@@ -34,6 +35,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.subinkrishna.androidjobs.R
 import com.subinkrishna.androidjobs.ext.isExpanded
 import com.subinkrishna.androidjobs.ext.isExpandedOrPeeked
+import com.subinkrishna.androidjobs.service.AndroidJobsApi
+import com.subinkrishna.androidjobs.service.RetrofitAndroidJobsApi
 import com.subinkrishna.androidjobs.service.model.JobListing
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.ItemSelectEvent
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.RemoteToggleEvent
@@ -41,18 +44,21 @@ import com.subinkrishna.androidjobs.ui.widget.DividerDecoration
 import com.subinkrishna.ext.setGifResource
 import io.reactivex.subjects.PublishSubject
 
-
 /**
  * Main activity that lists the jobs.
  *
- * @author Subinkrishna Gopi
  * @see JobListingViewModel
  */
 class JobListingActivity : AppCompatActivity() {
 
+    private val api: AndroidJobsApi by lazy { RetrofitAndroidJobsApi() }
     private val viewModel by lazy {
-        val factory = ViewModelProvider.AndroidViewModelFactory
-                .getInstance(application)
+        val factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+                return JobListingViewModel(application, api) as T
+            }
+        }
         ViewModelProviders.of(this, factory)[JobListingViewModel::class.java]
     }
 
