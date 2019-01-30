@@ -1,6 +1,11 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-allopen'
+
+allOpen {
+    annotation 'com.subinkrishna.androidjobs.Open'
+}
 
 android {
     compileSdkVersion versions.targetSdk
@@ -56,7 +61,11 @@ dependencies {
     debugImplementation "com.squareup.leakcanary:leakcanary-android:$versions.leakcanary"
     releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$versions.leakcanary"
 
+    // Testing
     testImplementation "junit:junit:$versions.junit"
+    testImplementation "org.mockito:mockito-core:$versions.mockito"
+    testImplementation "com.nhaarman:mockito-kotlin:$versions.mockito_kotlin"
+    testImplementation "com.google.truth:truth:$versions.truth"
     androidTestImplementation "androidx.test:runner:$versions.testRunner"
     androidTestImplementation "androidx.test.espresso:espresso-core:$versions.espresso"
 }

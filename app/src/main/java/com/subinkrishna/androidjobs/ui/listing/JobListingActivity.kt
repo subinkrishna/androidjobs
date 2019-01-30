@@ -42,6 +42,7 @@ import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.ItemSelectEvent
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.RemoteToggleEvent
 import com.subinkrishna.androidjobs.ui.widget.DividerDecoration
 import com.subinkrishna.ext.setGifResource
+import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 
 /**
@@ -52,6 +53,7 @@ import io.reactivex.subjects.PublishSubject
 class JobListingActivity : AppCompatActivity() {
 
     private val api: AndroidJobsApi by lazy { RetrofitAndroidJobsApi() }
+
     private val viewModel by lazy {
         val factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -90,7 +92,12 @@ class JobListingActivity : AppCompatActivity() {
         setContentView(R.layout.activity_job_listing)
         configureToolbar()
         configureUi(savedInstanceState)
-        viewModel.start(itemSelectEvent, remoteToggleEvent).observe(this, Observer {
+        // FetchJobEvent is not a user triggered event and need to happen only once
+        val fetchJobsEvent = when (savedInstanceState) {
+            null -> Observable.just(JobListingEvent.FetchJobsEvent)
+            else -> Observable.empty()
+        }
+        viewModel.start(fetchJobsEvent, itemSelectEvent, remoteToggleEvent).observe(this, Observer {
             render(it)
         })
     }

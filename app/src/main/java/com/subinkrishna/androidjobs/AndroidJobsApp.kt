@@ -19,6 +19,7 @@ import android.app.Application
 import com.squareup.leakcanary.LeakCanary
 import timber.log.Timber
 
+@Open
 class AndroidJobsApp : Application() {
 
     override fun onCreate() {

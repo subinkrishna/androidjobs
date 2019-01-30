@@ -57,25 +57,13 @@ class JobListingViewModel(
 
     private val disposable by lazy { CompositeDisposable() }
 
-    // Job fetch is not a user triggered event, hence moving it to ViewModel
-    private var isJobFetchTriggered = false
-    private val fetchJobsEvent: Observable<FetchJobsEvent>
-        get() {
-            // This event needs to be triggered only once
-            return if (!isJobFetchTriggered) {
-                isJobFetchTriggered = true
-                Observable.just(FetchJobsEvent)
-            } else {
-                Observable.empty()
-            }
-        }
-
     override fun onCleared() {
         super.onCleared()
         disposable.dispose()
     }
 
     fun start(
+            fetchJobsEvent: Observable<FetchJobsEvent>,
             itemClickEvent: Observable<ItemSelectEvent>,
             remoteToggleEvent: Observable<RemoteToggleEvent>
     ): LiveData<out JobListingViewState> {
