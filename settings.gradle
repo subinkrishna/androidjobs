@@ -1,1 +1,1 @@
-include ':app', ':fonts', ':service', ':extensions'
+include ':app', ':fonts', ':service', ':extensions', ':annotations'

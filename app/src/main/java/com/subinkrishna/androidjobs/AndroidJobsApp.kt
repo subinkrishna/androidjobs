@@ -17,9 +17,10 @@ package com.subinkrishna.androidjobs
 
 import android.app.Application
 import com.squareup.leakcanary.LeakCanary
+import com.subinkrishna.android.annotations.OpenForTesting
 import timber.log.Timber
 
-@Open
+@OpenForTesting
 class AndroidJobsApp : Application() {
 
     override fun onCreate() {
