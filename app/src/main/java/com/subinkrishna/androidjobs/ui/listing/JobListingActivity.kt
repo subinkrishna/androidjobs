@@ -39,11 +39,10 @@ import com.subinkrishna.androidjobs.service.AndroidJobsApi
 import com.subinkrishna.androidjobs.service.RetrofitAndroidJobsApi
 import com.subinkrishna.androidjobs.service.model.JobListing
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.ItemSelectEvent
-import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.RemoteToggleEvent
 import com.subinkrishna.androidjobs.ui.widget.DividerDecoration
 import com.subinkrishna.ext.setGifResource
-import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
+import timber.log.Timber
 
 /**
  * Main activity that lists the jobs.
@@ -75,7 +74,6 @@ class JobListingActivity : AppCompatActivity() {
     private lateinit var remoteToggle: TextView
 
     private val itemSelectEvent = PublishSubject.create<ItemSelectEvent>()
-    private val remoteToggleEvent = PublishSubject.create<RemoteToggleEvent>()
 
     private val jobListAdapter by lazy {
         val itemClickListener = View.OnClickListener { v ->
@@ -92,14 +90,7 @@ class JobListingActivity : AppCompatActivity() {
         setContentView(R.layout.activity_job_listing)
         configureToolbar()
         configureUi(savedInstanceState)
-        // FetchJobEvent is not a user triggered event and need to happen only once
-        val fetchJobsEvent = when (savedInstanceState) {
-            null -> Observable.just(JobListingEvent.FetchJobsEvent)
-            else -> Observable.empty()
-        }
-        viewModel.start(fetchJobsEvent, itemSelectEvent, remoteToggleEvent).observe(this, Observer {
-            render(it)
-        })
+        viewModel.state().observe(this, Observer { render(it) })
     }
 
     override fun onBackPressed() {
@@ -132,7 +123,7 @@ class JobListingActivity : AppCompatActivity() {
         statusImage = findViewById(R.id.androidGifImage)
         statusText = findViewById(R.id.statusMessageText)
         remoteToggle = findViewById<TextView>(R.id.remoteToggle).apply {
-            setOnClickListener { remoteToggleEvent.onNext(RemoteToggleEvent) }
+            setOnClickListener { viewModel.toggle() }
             isVisible = false // Show it only after fetching the listing
         }
 
@@ -171,6 +162,8 @@ class JobListingActivity : AppCompatActivity() {
     }
 
     private fun render(state: JobListingViewState) {
+        Timber.d("==> $state")
+
         val isLoading = state.isLoading
         val hasContent = state.content?.isNotEmpty() == true
         val hasError = state.error != null

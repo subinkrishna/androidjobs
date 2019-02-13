@@ -31,9 +31,11 @@ import com.subinkrishna.androidjobs.ui.listing.JobListingResult.*
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.PublishSubject
 import timber.log.Timber
 
 /**
@@ -42,12 +44,26 @@ import timber.log.Timber
  */
 class JobListingViewModel(
         private val app: Application,
-        private val api: AndroidJobsApi
+        private val api: AndroidJobsApi,
+        private val autoFetch: Boolean = true
 ) : AndroidViewModel(app) {
 
-    // Current view state
-    private var viewState = JobListingViewState(isLoading = true, filter = Filter.All)
-    private val viewStateLive by lazy { MutableLiveData<JobListingViewState>() }
+    // View state observables
+    private val viewStateObservable: BehaviorSubject<JobListingViewState> = BehaviorSubject.create()
+    private val viewStateLive: MutableLiveData<JobListingViewState> by lazy {
+        MutableLiveData<JobListingViewState>()
+    }
+
+    // Result stream
+    private val results: PublishSubject<Lce<out JobListingResult>> = PublishSubject.create()
+
+    // Input event streams
+    private val fetchJobsEvent: PublishSubject<FetchJobsEvent> = PublishSubject.create()
+    private val itemClickEvent: PublishSubject<ItemSelectEvent> = PublishSubject.create()
+    private val remoteToggleEvent: PublishSubject<RemoteToggleEvent> = PublishSubject.create()
+
+    // Disposable
+    private val disposable by lazy { CompositeDisposable() }
 
     // Holds all the job listings
     private var itemsLive = MutableLiveData<List<JobListing>>()
@@ -55,37 +71,68 @@ class JobListingViewModel(
     // Holds current listing filter
     private var filter = Filter.All
 
-    private val disposable by lazy { CompositeDisposable() }
+    init {
+        results.publish().apply {
+            compose(resultToViewState()).subscribe(viewStateObservable)
+            autoConnect(0) { disposable.add(it) }
+        }
+
+        disposable.add(startWith(
+                fetchJobsEvent,
+                itemClickEvent.distinctUntilChanged(),
+                remoteToggleEvent))
+        disposable.add(viewStateObservable
+                .doOnNext {
+                    Timber.d("==> $it")
+                    viewStateLive.postValue(it)
+                }
+                .subscribe())
+
+        if (autoFetch) {
+            fetchJobsEvent.onNext(FetchJobsEvent)
+        }
+    }
 
     override fun onCleared() {
         super.onCleared()
         disposable.dispose()
     }
 
-    fun start(
+    @SuppressWarnings("WeakerAccess")
+    fun startWith(
             fetchJobsEvent: Observable<FetchJobsEvent>,
             itemClickEvent: Observable<ItemSelectEvent>,
             remoteToggleEvent: Observable<RemoteToggleEvent>
-    ): LiveData<out JobListingViewState> {
+    ): Disposable {
         // Merge events and get results
         val results: Observable<Lce<out JobListingResult>> = Observable.merge(
-                fetchJobsEvent.compose(onFetchJobs()),
-                remoteToggleEvent.compose(onRemoteToggle()),
-                itemClickEvent.compose(onJobItemClick()))
-
-        // Reduce to state & update LiveData
-        disposable.add(reduceResultToViewState(results)
-                .distinctUntilChanged()
-                .log("State")
-                .doOnNext {
-                    viewState = it
-                    viewStateLive.postValue(it)
+                fetchJobsEvent, remoteToggleEvent , itemClickEvent)
+                .doOnNext { Timber.d("<-- $it") }
+                .compose { event ->
+                    event.publish {
+                        Observable.merge(
+                                it.ofType(FetchJobsEvent::class.java).compose(onFetchJobs()),
+                                it.ofType(RemoteToggleEvent::class.java).compose(onRemoteToggle()),
+                                it.ofType(ItemSelectEvent::class.java).compose(onJobItemClick())
+                        )
+                    }
                 }
-                .subscribeOn(Schedulers.single())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe())
+                .doOnNext { Timber.d("--> $it") }
+        // Publish each result to result stream
+        return results
+                .doOnNext { this.results.onNext(it) }
+                .subscribe()
+    }
 
-        return viewStateLive
+    @SuppressWarnings("unused", "WeakerAccess")
+    fun state(): LiveData<out JobListingViewState> = viewStateLive
+
+    @SuppressWarnings("unused", "WeakerAccess")
+    fun viewState(): Observable<JobListingViewState> = viewStateObservable
+
+    // todo: bad design. switch to filterBy()
+    fun toggle() {
+        remoteToggleEvent.onNext(RemoteToggleEvent)
     }
 
 
@@ -93,8 +140,9 @@ class JobListingViewModel(
 
     private fun onFetchJobs(): ObservableTransformer<FetchJobsEvent, Lce<FetchJobsResult>> {
         return ObservableTransformer { upstream ->
-            upstream.switchMap { _ ->
+            upstream.switchMap {
                 api.getJobs().toObservable()
+                        .subscribeOn(Schedulers.io())
                         .doOnNext { itemsLive.postValue(it) }
                         .map { FetchJobsResult(items = it) }
                         .onErrorReturn { FetchJobsResult(error = it) }
@@ -108,7 +156,7 @@ class JobListingViewModel(
         return ObservableTransformer { upstream ->
             upstream
                     .takeWhile { itemsLive.value?.isNotEmpty() == true }
-                    .map { _ ->
+                    .map {
                         filter = if (filter == Filter.All) Filter.Remote else Filter.All
                         val filteredItems = when (filter) {
                             Filter.All -> itemsLive.value
@@ -129,42 +177,30 @@ class JobListingViewModel(
         }
     }
 
-    private fun reduceResultToViewState(
-            results: Observable<Lce<out JobListingResult>>
-    ): Observable<JobListingViewState> {
-        return results.scan(viewState) { viewState, result ->
-            Timber.d("result: $result")
-            when (result) {
-                is Lce.Loading -> {
-                    viewState.copy(isLoading = true, error = null)
-                }
-                is Lce.Content -> {
-                    when (result.payload) {
-                        is FetchJobsResult -> {
-                            viewState.copy(
-                                    isLoading = false,
-                                    error = null,
-                                    content = result.payload.items)
-                        }
-                        is FilteredListingResult -> {
-                            viewState.copy(
-                                    content = result.payload.items,
+    private fun resultToViewState(): ObservableTransformer<Lce<out JobListingResult>, JobListingViewState> {
+        return ObservableTransformer { resultStream ->
+            val startState = viewStateObservable.value
+                    ?: JobListingViewState(isLoading = true, filter = Filter.All)
+            resultStream.scan(startState) { viewState, result ->
+                when (result) {
+                    is Lce.Loading -> viewState.copy(isLoading = true, error = null)
+                    is Lce.Content -> {
+                        when (result.payload) {
+                            is FetchJobsResult -> viewState.copy(isLoading = false,
+                                    error = null, content = result.payload.items)
+                            is FilteredListingResult -> viewState.copy(content = result.payload.items,
                                     filter = result.payload.filter)
+                            is ItemSelectResult -> viewState.copy(itemInFocus = result.payload.item)
                         }
-                        is ItemSelectResult -> {
-                            viewState.copy(itemInFocus = result.payload.item)
+                    }
+                    is Lce.Error -> {
+                        when (result.payload) {
+                            is FetchJobsResult -> viewState.copy(isLoading = false, error = result.payload.error)
+                            else -> throw IllegalStateException("Something went wrong!")
                         }
                     }
                 }
-                is Lce.Error -> {
-                    when (result.payload) {
-                        is FetchJobsResult -> {
-                            viewState.copy(isLoading = false, error = result.payload.error)
-                        }
-                        else -> { throw IllegalStateException("Something went wrong!") }
-                    }
-                }
-            }
+            }.distinctUntilChanged()
         }
     }
 
