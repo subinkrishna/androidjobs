@@ -40,7 +40,6 @@ import timber.log.Timber
 
 /**
  * USF (Uni-directional State Flow) based ViewModel implementation for job listing.
- * Inspired by https://github.com/kaushikgopal/movies-usf/blob/master/app/src/main/java/co/kaush/msusf/movies/MSMovieVm.kt
  */
 class JobListingViewModel(
         private val app: Application,

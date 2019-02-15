@@ -181,7 +181,7 @@ class JobListingActivity : AppCompatActivity() {
                 jobDetailsSheet.bind(state.itemInFocus!!)
                 bottomSheetBehavior.isExpanded = true
             }
-        } else if (!isLoading && !hasContent) {
+        } else if (!isLoading && !hasContent && !hasError) {
             statusImage.setGifResource(R.raw.gif_androidify_basketball)
             statusText.setText(R.string.empty_no_listing)
         }
