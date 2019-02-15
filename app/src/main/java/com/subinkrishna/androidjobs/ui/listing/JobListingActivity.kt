@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2018 Subinkrishna Gopi
+ * Copyright (C) 2019 Subinkrishna Gopi
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,10 +38,8 @@ import com.subinkrishna.androidjobs.ext.isExpandedOrPeeked
 import com.subinkrishna.androidjobs.service.AndroidJobsApi
 import com.subinkrishna.androidjobs.service.RetrofitAndroidJobsApi
 import com.subinkrishna.androidjobs.service.model.JobListing
-import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.ItemSelectEvent
 import com.subinkrishna.androidjobs.ui.widget.DividerDecoration
 import com.subinkrishna.ext.setGifResource
-import io.reactivex.subjects.PublishSubject
 import timber.log.Timber
 
 /**
@@ -73,12 +71,10 @@ class JobListingActivity : AppCompatActivity() {
     private lateinit var statusText: TextView
     private lateinit var remoteToggle: TextView
 
-    private val itemSelectEvent = PublishSubject.create<ItemSelectEvent>()
-
     private val jobListAdapter by lazy {
         val itemClickListener = View.OnClickListener { v ->
             val jobListing = v.tag as? JobListing ?: return@OnClickListener
-            itemSelectEvent.onNext(ItemSelectEvent(jobListing))
+            viewModel.select(jobListing)
         }
         JobListingAdapter(itemClickListener).apply {
             setHasStableIds(true)
@@ -123,7 +119,10 @@ class JobListingActivity : AppCompatActivity() {
         statusImage = findViewById(R.id.androidGifImage)
         statusText = findViewById(R.id.statusMessageText)
         remoteToggle = findViewById<TextView>(R.id.remoteToggle).apply {
-            setOnClickListener { viewModel.toggle() }
+            setOnClickListener {
+                viewModel.toggle()
+                jobList.smoothScrollToPosition(0)
+            }
             isVisible = false // Show it only after fetching the listing
         }
 
@@ -226,7 +225,7 @@ class JobListingActivity : AppCompatActivity() {
                     shutter.isVisible = false
                     jobDetailsSheet.showCloseButton(false)
                     // Set "no item" selected
-                    itemSelectEvent.onNext(ItemSelectEvent(null))
+                    viewModel.select(null)
                 }
                 jobList.isVisible = true
             }

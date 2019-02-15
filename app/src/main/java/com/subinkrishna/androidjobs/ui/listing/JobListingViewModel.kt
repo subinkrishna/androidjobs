@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2018 Subinkrishna Gopi
+ * Copyright (C) 2019 Subinkrishna Gopi
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,6 +133,10 @@ class JobListingViewModel(
     // todo: bad design. switch to filterBy()
     fun toggle() {
         remoteToggleEvent.onNext(RemoteToggleEvent)
+    }
+
+    fun select(item: JobListing?) {
+        itemClickEvent.onNext(ItemSelectEvent(item))
     }
 
 
