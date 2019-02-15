@@ -1,0 +1,40 @@
+# Built application files
+*.ap_
+
+# Files for the dex VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+target/
+
+# Local configuration file
+local.properties
+
+# Mac
+.DS_Store
+
+# Eclipse
+.project
+.classpath
+.settings
+.checkstyle
+
+# IntelliJ / Android Studio
+*.iml
+*.iws
+out/
+.idea
+
+#/.idea/workspace.xml
+#/.idea/misc.xml
+#/.idea/modules.xml
+#/.idea/libraries/
+
+# Gradle
+.gradle/
+build/

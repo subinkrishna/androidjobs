@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2018 Subinkrishna Gopi
+ * Copyright (C) 2019 Subinkrishna Gopi
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ import com.subinkrishna.androidjobs.service.model.JobListing
 
 /**
  * View state, events & results.
- *
- * @author Subinkrishna Gopi
  */
 data class JobListingViewState(
         val isLoading: Boolean = false,

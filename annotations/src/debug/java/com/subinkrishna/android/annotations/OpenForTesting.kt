@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2018 Subinkrishna Gopi
+ * Copyright (C) 2019 Subinkrishna Gopi
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.subinkrishna.androidjobs
+package com.subinkrishna.android.annotations
 
-import android.app.Application
-import com.squareup.leakcanary.LeakCanary
-import com.subinkrishna.android.annotations.OpenForTesting
-import timber.log.Timber
+@Target(AnnotationTarget.ANNOTATION_CLASS)
+annotation class Open
 
-@OpenForTesting
-class AndroidJobsApp : Application() {
-
-    override fun onCreate() {
-        super.onCreate()
-
-        // Leak canary
-        if (LeakCanary.isInAnalyzerProcess(this)) return
-        LeakCanary.install(this)
-
-        // Timber
-        Timber.plant(Timber.DebugTree())
-    }
-}
+@Open
+@Target(AnnotationTarget.CLASS)
+annotation class OpenForTesting

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2018 Subinkrishna Gopi
+ * Copyright (C) 2019 Subinkrishna Gopi
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,11 +38,9 @@ import com.subinkrishna.androidjobs.ext.isExpandedOrPeeked
 import com.subinkrishna.androidjobs.service.AndroidJobsApi
 import com.subinkrishna.androidjobs.service.RetrofitAndroidJobsApi
 import com.subinkrishna.androidjobs.service.model.JobListing
-import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.ItemSelectEvent
-import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.RemoteToggleEvent
 import com.subinkrishna.androidjobs.ui.widget.DividerDecoration
 import com.subinkrishna.ext.setGifResource
-import io.reactivex.subjects.PublishSubject
+import timber.log.Timber
 
 /**
  * Main activity that lists the jobs.
@@ -52,6 +50,7 @@ import io.reactivex.subjects.PublishSubject
 class JobListingActivity : AppCompatActivity() {
 
     private val api: AndroidJobsApi by lazy { RetrofitAndroidJobsApi() }
+
     private val viewModel by lazy {
         val factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -72,13 +71,10 @@ class JobListingActivity : AppCompatActivity() {
     private lateinit var statusText: TextView
     private lateinit var remoteToggle: TextView
 
-    private val itemSelectEvent = PublishSubject.create<ItemSelectEvent>()
-    private val remoteToggleEvent = PublishSubject.create<RemoteToggleEvent>()
-
     private val jobListAdapter by lazy {
         val itemClickListener = View.OnClickListener { v ->
             val jobListing = v.tag as? JobListing ?: return@OnClickListener
-            itemSelectEvent.onNext(ItemSelectEvent(jobListing))
+            viewModel.select(jobListing)
         }
         JobListingAdapter(itemClickListener).apply {
             setHasStableIds(true)
@@ -90,9 +86,7 @@ class JobListingActivity : AppCompatActivity() {
         setContentView(R.layout.activity_job_listing)
         configureToolbar()
         configureUi(savedInstanceState)
-        viewModel.start(itemSelectEvent, remoteToggleEvent).observe(this, Observer {
-            render(it)
-        })
+        viewModel.viewStateLive().observe(this, Observer { render(it) })
     }
 
     override fun onBackPressed() {
@@ -125,7 +119,10 @@ class JobListingActivity : AppCompatActivity() {
         statusImage = findViewById(R.id.androidGifImage)
         statusText = findViewById(R.id.statusMessageText)
         remoteToggle = findViewById<TextView>(R.id.remoteToggle).apply {
-            setOnClickListener { remoteToggleEvent.onNext(RemoteToggleEvent) }
+            setOnClickListener {
+                viewModel.toggle()
+                jobList.smoothScrollToPosition(0)
+            }
             isVisible = false // Show it only after fetching the listing
         }
 
@@ -164,6 +161,8 @@ class JobListingActivity : AppCompatActivity() {
     }
 
     private fun render(state: JobListingViewState) {
+        Timber.d("==> $state")
+
         val isLoading = state.isLoading
         val hasContent = state.content?.isNotEmpty() == true
         val hasError = state.error != null
@@ -182,7 +181,7 @@ class JobListingActivity : AppCompatActivity() {
                 jobDetailsSheet.bind(state.itemInFocus!!)
                 bottomSheetBehavior.isExpanded = true
             }
-        } else if (!isLoading && !hasContent) {
+        } else if (!isLoading && !hasContent && !hasError) {
             statusImage.setGifResource(R.raw.gif_androidify_basketball)
             statusText.setText(R.string.empty_no_listing)
         }
@@ -226,7 +225,7 @@ class JobListingActivity : AppCompatActivity() {
                     shutter.isVisible = false
                     jobDetailsSheet.showCloseButton(false)
                     // Set "no item" selected
-                    itemSelectEvent.onNext(ItemSelectEvent(null))
+                    viewModel.select(null)
                 }
                 jobList.isVisible = true
             }
