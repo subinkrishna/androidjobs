@@ -86,7 +86,7 @@ class JobListingActivity : AppCompatActivity() {
         setContentView(R.layout.activity_job_listing)
         configureToolbar()
         configureUi(savedInstanceState)
-        viewModel.state().observe(this, Observer { render(it) })
+        viewModel.viewStateLive().observe(this, Observer { render(it) })
     }
 
     override fun onBackPressed() {

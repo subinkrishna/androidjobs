@@ -81,7 +81,7 @@ class JobListingViewModel(
                 fetchJobsEvent,
                 itemClickEvent.distinctUntilChanged(),
                 remoteToggleEvent))
-        disposable.add(viewStateObservable
+        disposable.add(viewState()
                 .doOnNext {
                     Timber.d("==> $it")
                     viewStateLive.postValue(it)
@@ -125,7 +125,7 @@ class JobListingViewModel(
     }
 
     @SuppressWarnings("unused", "WeakerAccess")
-    fun state(): LiveData<out JobListingViewState> = viewStateLive
+    fun viewStateLive(): LiveData<out JobListingViewState> = viewStateLive
 
     @SuppressWarnings("unused", "WeakerAccess")
     fun viewState(): Observable<JobListingViewState> = viewStateObservable
