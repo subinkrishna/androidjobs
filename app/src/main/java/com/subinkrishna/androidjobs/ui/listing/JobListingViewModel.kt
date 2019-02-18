@@ -28,6 +28,7 @@ import com.subinkrishna.androidjobs.service.AndroidJobsApi
 import com.subinkrishna.androidjobs.service.model.JobListing
 import com.subinkrishna.androidjobs.ui.listing.JobListingEvent.*
 import com.subinkrishna.androidjobs.ui.listing.JobListingResult.*
+import com.subinkrishna.ext.rx.plusAssign
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
@@ -73,19 +74,19 @@ class JobListingViewModel(
     init {
         results.publish().apply {
             compose(resultToViewState()).subscribe(viewStateObservable)
-            autoConnect(0) { disposable.add(it) }
+            autoConnect(0) { disposable += it }
         }
 
-        disposable.add(startWith(
+        disposable += startWith(
                 fetchJobsEvent,
                 itemClickEvent.distinctUntilChanged(),
-                remoteToggleEvent))
-        disposable.add(viewState()
+                remoteToggleEvent)
+        disposable += viewState()
                 .doOnNext {
                     Timber.d("==> $it")
                     viewStateLive.postValue(it)
                 }
-                .subscribe())
+                .subscribe()
 
         if (autoFetch) {
             fetchJobsEvent.onNext(FetchJobsEvent)

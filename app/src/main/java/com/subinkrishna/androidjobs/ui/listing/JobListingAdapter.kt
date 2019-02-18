@@ -25,7 +25,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.subinkrishna.androidjobs.R
 import com.subinkrishna.androidjobs.service.model.JobListing
-import com.subinkrishna.ext.setImageUrl
+import com.subinkrishna.ext.view.setImageUrl
 
 class JobListingAdapter(
         private val itemClickListener: View.OnClickListener? = null

@@ -39,7 +39,7 @@ import com.subinkrishna.androidjobs.service.AndroidJobsApi
 import com.subinkrishna.androidjobs.service.RetrofitAndroidJobsApi
 import com.subinkrishna.androidjobs.service.model.JobListing
 import com.subinkrishna.androidjobs.ui.widget.DividerDecoration
-import com.subinkrishna.ext.setGifResource
+import com.subinkrishna.ext.view.setGifResource
 import timber.log.Timber
 
 /**

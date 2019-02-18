@@ -26,7 +26,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.subinkrishna.androidjobs.R
 import com.subinkrishna.androidjobs.service.model.JobListing
-import com.subinkrishna.ext.setImageUrl
+import com.subinkrishna.ext.view.setImageUrl
 
 class JobDetailsView @JvmOverloads constructor(
         context: Context,
