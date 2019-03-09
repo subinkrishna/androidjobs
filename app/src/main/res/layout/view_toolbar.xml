@@ -25,15 +25,14 @@
         android:layout_width="wrap_content"
         android:layout_height="26dp"
         android:layout_gravity="center_vertical|end"
-        android:gravity="center"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:fontFamily="@font/product_sans"
+        android:background="@drawable/bg_remote_toggle"
+        android:gravity="center"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:textColor="@color/bg_remote_toggle_text"
-        android:background="@drawable/bg_remote_toggle"
         android:text="@string/job_listing_remote"
-        android:textAppearance="@style/AppTextAppearance.Small" />
+        android:textAppearance="@style/AppTextAppearance.Small"
+        android:textColor="@color/bg_remote_toggle_text" />
 
 </FrameLayout>
